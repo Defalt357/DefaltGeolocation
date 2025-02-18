@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeivGeolocation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72, #2a5298); /* Gradiente profissional */
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9); /* Fundo branco semi-transparente */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            color: #333; /* Cor do texto dentro do container */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #1e3c72; /* Cor do título */
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #1e3c72;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2a5298;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #result p {
+            margin: 10px 0;
+        }
+
+        #map {
+            height: 300px;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+        }
+
+        footer a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #1e3c72;
+        }
+    </style>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>DeivGeolocation</h1>
+        <input type="text" id="ipInput" placeholder="Digite um IP ou deixe em branco para o seu IP">
+        <button id="searchButton">Buscar Localização</button>
+        <div id="result">
+            <p><strong>IP:</strong> <span id="ip"></span></p>
+            <p><strong>País:</strong> <span id="country"></span></p>
+            <p><strong>Cidade:</strong> <span id="city"></span></p>
+            <p><strong>Região:</strong> <span id="region"></span></p>
+            <p><strong>CEP:</strong> <span id="zip"></span></p>
+            <p><strong>Localização:</strong> <span id="loc"></span></p>
+        </div>
+        <div id="map"></div>
+        <footer>
+            &copy; 2023 DeivGeolocation. Todos os direitos reservados. | 
+            Desenvolvido por <a href="#" target="_blank">DEIV FREITAS</a>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Função para buscar a geolocalização
+        async function buscarGeolocalizacao(ip) {
+            const token = '78c7ab8abe1492'; // Substitua pelo seu token do ipinfo.io
+            const url = `https://ipinfo.io/${ip}?token=${token}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Exibe os dados na página
+                document.getElementById('ip').textContent = data.ip;
+                document.getElementById('country').textContent = data.country;
+                document.getElementById('city').textContent = data.city;
+                document.getElementById('region').textContent = data.region;
+                document.getElementById('zip').textContent = data.postal;
+                document.getElementById('loc').textContent = data.loc;
+
+                // Exibe o mapa
+                const [lat, lng] = data.loc.split(',');
+                exibirMapa(parseFloat(lat), parseFloat(lng));
+            } catch (error) {
+                console.error('Erro ao buscar localização:', error);
+            }
+        }
+
+        // Função para exibir o mapa com Leaflet
+        function exibirMapa(lat, lng) {
+            // Remove o mapa anterior, se existir
+            if (window.mapa) {
+                window.mapa.remove();
+            }
+
+            // Cria um novo mapa
+            window.mapa = L.map('map').setView([lat, lng], 13);
+
+            // Adiciona os tiles do OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(window.mapa);
+
+            // Adiciona um marcador
+            L.marker([lat, lng]).addTo(window.mapa)
+                .bindPopup('Localização do IP')
+                .openPopup();
+        }
+
+        // Evento de clique no botão
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const ip = document.getElementById('ipInput').value;
+            buscarGeolocalizacao(ip);
+        });
+
+        // Inicializa o mapa ao carregar a página (opcional)
+        window.onload = () => {
+            buscarGeolocalizacao(''); // Busca a localização do IP atual
+        };
+    </script>
+</body>
+</html>
